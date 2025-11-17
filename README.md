@@ -1,0 +1,3 @@
+# Book Management API
+
+A backend service built with Spring Boot and PostgreSQL that allows users to efficiently manage books. It provides CRUD operations for adding, updating, deleting, and retrieving book records, along with support for categories, authors, and search functionality. Designed with a clean architecture and RESTful principles, it serves as a reliable foundation for building book-related applications or learning real-world backend development.
