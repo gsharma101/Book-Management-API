@@ -82,7 +82,10 @@ export default function App() {
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-semibold mb-6">Books Table Demo</h1>
+      <h1 className="text-3xl font-extrabold mb-6 text-center bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+        Books Table
+      </h1>
+
       <BookTable
         books={books}
         onEdit={handleEdit}
