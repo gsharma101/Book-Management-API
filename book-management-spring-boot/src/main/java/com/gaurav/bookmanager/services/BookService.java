@@ -31,12 +31,18 @@ public class BookService {
                 new ResourceNotFoundException("Book not found with id " + id));
     }
 
-    public Book update(Long id, Book update) {
+    public Book update(Long id, Book updatedBook) {
         Book existing = findById(id);
-        if (update.getTitle() != null) existing.setTitle(update.getTitle());
-        if (update.getAuthor() != null) existing.setAuthor(update.getAuthor());
+
+        existing.setTitle(updatedBook.getTitle());
+        existing.setAuthor(updatedBook.getAuthor());
+        existing.setGenre(updatedBook.getGenre());
+        existing.setYear(updatedBook.getYear());
+        existing.setStatus(updatedBook.getStatus());
+
         return repo.save(existing);
     }
+
 
     public void delete(Long id) {
         Book existing = findById(id);
