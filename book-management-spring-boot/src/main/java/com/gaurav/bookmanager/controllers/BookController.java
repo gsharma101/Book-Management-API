@@ -44,4 +44,10 @@ public class BookController {
         svc.delete(id);
         return ResponseEntity.noContent().build();
     }
+
+    @DeleteMapping("/all")
+    public ResponseEntity<Void> deleteAll() {
+        svc.deleteAll();
+        return ResponseEntity.noContent().build();
+    }
 }

@@ -5,11 +5,15 @@ import BookTable from "../components/BookTable";
 import AddBookModal from "../components/AddBookModal";
 import EditBookModal from "../components/EditBookModal";
 import DeleteConfirmModal from "../components/DeleteConfirmModal";
+import DeleteAllConfirmModal from "../components/DeleteAllConfirmModal";
 
 function BooksPage() {
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // Delete ALL modal
+  const [isDeleteAllOpen, setIsDeleteAllOpen] = useState(false);
 
   // Add modal
   const [isAddOpen, setIsAddOpen] = useState(false);
@@ -178,6 +182,20 @@ function BooksPage() {
     pendingDeleteRef.current = null;
   };
 
+  const handleDeleteAll = async () => {
+    try {
+      await fetch("http://localhost:8081/api/v1/books/all", {
+        method: "DELETE",
+      });
+
+      setBooks([]);
+      toast.success("All books deleted");
+      setIsDeleteAllOpen(false);
+    } catch {
+      toast.error("Failed to delete all books");
+    }
+  };
+
   // ======================
   // UI
   // ======================
@@ -200,6 +218,7 @@ function BooksPage() {
         onEdit={handleEdit}
         onDelete={handleDelete}
         onAdd={() => setIsAddOpen(true)}
+        onDeleteAll={() => setIsDeleteAllOpen(true)} // ✅ ADD THIS
       />
 
       <AddBookModal
@@ -220,6 +239,12 @@ function BooksPage() {
         book={deleteBook}
         onCancel={() => setIsDeleteOpen(false)}
         onConfirm={confirmDelete}
+      />
+
+      <DeleteAllConfirmModal
+        isOpen={isDeleteAllOpen}
+        onClose={() => setIsDeleteAllOpen(false)}
+        onConfirm={handleDeleteAll}
       />
     </div>
   );

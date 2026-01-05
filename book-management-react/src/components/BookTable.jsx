@@ -14,6 +14,7 @@ export default function BookTable({
   onEdit = () => {},
   onDelete = () => {},
   onAdd = () => {},
+  onDeleteAll = () => {},
   initialPageSize = 8,
 }) {
   const [globalFilter, setGlobalFilter] = useState("");
@@ -122,6 +123,13 @@ export default function BookTable({
             + Add Book
           </button>
 
+          <button
+            onClick={onDeleteAll}
+            className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+          >
+            Delete All
+          </button>
+
           <input
             value={globalFilter}
             onChange={(e) => {
@@ -160,9 +168,7 @@ export default function BookTable({
                     <input
                       type="checkbox"
                       checked={col.getIsVisible()}
-                      onChange={(e) =>
-                        col.toggleVisibility(e.target.checked)
-                      }
+                      onChange={(e) => col.toggleVisibility(e.target.checked)}
                     />
                     <span className="capitalize">{col.id}</span>
                   </label>
@@ -183,9 +189,7 @@ export default function BookTable({
                     key={header.id}
                     onClick={header.column.getToggleSortingHandler()}
                     className={`px-4 py-3 text-left select-none ${
-                      header.column.getCanSort()
-                        ? "cursor-pointer"
-                        : ""
+                      header.column.getCanSort() ? "cursor-pointer" : ""
                     }`}
                   >
                     {flexRender(
@@ -275,8 +279,7 @@ export default function BookTable({
             Prev
           </button>
           <span className="px-3 py-1 border rounded">
-            {table.getState().pagination.pageIndex + 1} /{" "}
-            {table.getPageCount()}
+            {table.getState().pagination.pageIndex + 1} / {table.getPageCount()}
           </span>
           <button
             onClick={() => table.nextPage()}

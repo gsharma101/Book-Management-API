@@ -48,4 +48,8 @@ public class BookService {
         Book existing = findById(id);
         repo.delete(existing);
     }
+
+    public void deleteAll() {
+        repo.deleteAll();
+    }
 }
