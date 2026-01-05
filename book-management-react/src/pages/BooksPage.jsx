@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import toast from "react-hot-toast";
 
 import BookTable from "../components/BookTable";
+import AddBookModal from "../components/AddBookModal";
 import EditBookModal from "../components/EditBookModal";
 import DeleteConfirmModal from "../components/DeleteConfirmModal";
 
@@ -9,6 +10,9 @@ function BooksPage() {
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // Add modal
+  const [isAddOpen, setIsAddOpen] = useState(false);
 
   // Edit modal
   const [editingBook, setEditingBook] = useState(null);
@@ -40,6 +44,24 @@ function BooksPage() {
     };
     fetchBooks();
   }, []);
+
+  // ======================
+  // Add
+  // ======================
+  const handleAddBook = async (book) => {
+    const res = await fetch("http://localhost:8081/api/v1/books", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(book),
+    });
+
+    if (!res.ok) throw new Error("Failed to add book");
+
+    const saved = await res.json();
+
+    // ✅ single source of truth
+    setBooks((prev) => [saved, ...prev]);
+  };
 
   // ======================
   // Edit
@@ -74,7 +96,7 @@ function BooksPage() {
   };
 
   // ======================
-  // Delete + Undo (FINAL)
+  // Delete + Undo
   // ======================
   const handleDelete = (book) => {
     setDeleteBook(book);
@@ -82,25 +104,24 @@ function BooksPage() {
   };
 
   const confirmDelete = (book) => {
-    // Optimistic UI
-    setBooks((prev) => prev.filter((b) => b.id !== book.id));
-    setIsDeleteOpen(false);
-    // 🚫 Block multiple deletes
+    // 🚫 Prevent parallel deletes
     if (pendingDeleteRef.current) {
-      toast.error("Please undo or wait for the current delete to finish");
+      toast.error("Please undo or wait for the current delete");
       return;
     }
 
-    pendingDeleteRef.current = book;
+    // Optimistic UI
+    setBooks((prev) => prev.filter((b) => b.id !== book.id));
+    setIsDeleteOpen(false);
 
+    pendingDeleteRef.current = book;
     let timeLeft = 5;
 
-    // Create toast and store its ID
     const toastId = toast.custom(
       <span className="flex gap-3 items-center">
         <span>Book deleted in {timeLeft}s</span>
         <button
-          className="underline font-semibold cursor-pointer hover:text-indigo-600"
+          className="underline font-semibold"
           onClick={() => undoDelete(toastId)}
         >
           Undo
@@ -109,15 +130,13 @@ function BooksPage() {
       { duration: 5000 }
     );
 
-    // Countdown update (THIS makes it real-time)
     countdownIntervalRef.current = setInterval(() => {
       timeLeft -= 1;
-
       toast.custom(
         <span className="flex gap-3 items-center">
           <span>Book deleted in {timeLeft}s</span>
           <button
-            className="underline font-semibold cursor-pointer hover:text-indigo-600"
+            className="underline font-semibold"
             onClick={() => undoDelete(toastId)}
           >
             Undo
@@ -127,7 +146,6 @@ function BooksPage() {
       );
     }, 1000);
 
-    // Final delete after 5s
     deleteTimerRef.current = setTimeout(async () => {
       try {
         await fetch(`http://localhost:8081/api/v1/books/${book.id}`, {
@@ -136,6 +154,7 @@ function BooksPage() {
         toast.success("Book permanently deleted 🗑️");
       } catch {
         toast.error("Delete failed");
+        setBooks((prev) => [book, ...prev]);
       } finally {
         cleanupTimers();
         toast.dismiss(toastId);
@@ -149,7 +168,6 @@ function BooksPage() {
 
     cleanupTimers();
     setBooks((prev) => [book, ...prev]);
-
     toast.dismiss(toastId);
     toast.success("Delete undone ↩️");
   };
@@ -168,9 +186,27 @@ function BooksPage() {
 
   return (
     <div className="p-6">
-      <h1 className="text-3xl font-bold text-center mb-6">Books Table</h1>
+      <div className="mb-6 text-center">
+        <h1 className="text-3xl font-semibold tracking-tight">
+          📚 Books Library
+        </h1>
+        <p className="text-sm text-gray-500 mt-1">
+          Manage, search, and organize your books
+        </p>
+      </div>
 
-      <BookTable books={books} onEdit={handleEdit} onDelete={handleDelete} />
+      <BookTable
+        books={books}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        onAdd={() => setIsAddOpen(true)}
+      />
+
+      <AddBookModal
+        isOpen={isAddOpen}
+        onClose={() => setIsAddOpen(false)}
+        onSave={handleAddBook}
+      />
 
       <EditBookModal
         isOpen={isEditOpen}
