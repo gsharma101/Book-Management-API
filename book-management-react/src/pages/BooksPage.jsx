@@ -7,26 +7,21 @@ import EditBookModal from "../components/EditBookModal";
 import DeleteConfirmModal from "../components/DeleteConfirmModal";
 import DeleteAllConfirmModal from "../components/DeleteAllConfirmModal";
 
+// ✅ import API_URL directly
+import { API_URL } from "../api/booksApi";
+
 function BooksPage() {
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Delete ALL modal
   const [isDeleteAllOpen, setIsDeleteAllOpen] = useState(false);
-
-  // Add modal
   const [isAddOpen, setIsAddOpen] = useState(false);
-
-  // Edit modal
   const [editingBook, setEditingBook] = useState(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
-
-  // Delete modal
   const [deleteBook, setDeleteBook] = useState(null);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
-  // Undo delete refs
   const pendingDeleteRef = useRef(null);
   const deleteTimerRef = useRef(null);
   const countdownIntervalRef = useRef(null);
@@ -35,9 +30,9 @@ function BooksPage() {
   // Fetch books
   // ======================
   useEffect(() => {
-    const fetchBooks = async () => {
+    const loadBooks = async () => {
       try {
-        const res = await fetch("http://localhost:8081/api/v1/books");
+        const res = await fetch(API_URL);
         if (!res.ok) throw new Error("Failed to fetch books");
         setBooks(await res.json());
       } catch (err) {
@@ -46,14 +41,14 @@ function BooksPage() {
         setLoading(false);
       }
     };
-    fetchBooks();
+    loadBooks();
   }, []);
 
   // ======================
   // Add
   // ======================
   const handleAddBook = async (book) => {
-    const res = await fetch("http://localhost:8081/api/v1/books", {
+    const res = await fetch(API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(book),
@@ -62,8 +57,6 @@ function BooksPage() {
     if (!res.ok) throw new Error("Failed to add book");
 
     const saved = await res.json();
-
-    // ✅ single source of truth
     setBooks((prev) => [saved, ...prev]);
   };
 
@@ -77,19 +70,18 @@ function BooksPage() {
 
   const handleUpdateBook = async (updatedBook) => {
     try {
-      const res = await fetch(
-        `http://localhost:8081/api/v1/books/${updatedBook.id}`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(updatedBook),
-        }
-      );
+      const res = await fetch(`${API_URL}/${updatedBook.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedBook),
+      });
 
       if (!res.ok) throw new Error("Update failed");
 
       const saved = await res.json();
-      setBooks((prev) => prev.map((b) => (b.id === saved.id ? saved : b)));
+      setBooks((prev) =>
+        prev.map((b) => (b.id === saved.id ? saved : b))
+      );
 
       toast.success("Book updated ✨");
       setIsEditOpen(false);
@@ -108,13 +100,11 @@ function BooksPage() {
   };
 
   const confirmDelete = (book) => {
-    // 🚫 Prevent parallel deletes
     if (pendingDeleteRef.current) {
       toast.error("Please undo or wait for the current delete");
       return;
     }
 
-    // Optimistic UI
     setBooks((prev) => prev.filter((b) => b.id !== book.id));
     setIsDeleteOpen(false);
 
@@ -152,9 +142,7 @@ function BooksPage() {
 
     deleteTimerRef.current = setTimeout(async () => {
       try {
-        await fetch(`http://localhost:8081/api/v1/books/${book.id}`, {
-          method: "DELETE",
-        });
+        await fetch(`${API_URL}/${book.id}`, { method: "DELETE" });
         toast.success("Book permanently deleted 🗑️");
       } catch {
         toast.error("Delete failed");
@@ -184,10 +172,7 @@ function BooksPage() {
 
   const handleDeleteAll = async () => {
     try {
-      await fetch("http://localhost:8081/api/v1/books/all", {
-        method: "DELETE",
-      });
-
+      await fetch(`${API_URL}/all`, { method: "DELETE" });
       setBooks([]);
       toast.success("All books deleted");
       setIsDeleteAllOpen(false);
@@ -196,29 +181,17 @@ function BooksPage() {
     }
   };
 
-  // ======================
-  // UI
-  // ======================
   if (loading) return <div className="p-6 text-center">Loading...</div>;
   if (error) return <div className="p-6 text-red-600">{error}</div>;
 
   return (
     <div className="p-6">
-      <div className="mb-6 text-center">
-        <h1 className="text-3xl font-semibold tracking-tight">
-          📚 Books Library
-        </h1>
-        <p className="text-sm text-gray-500 mt-1">
-          Manage, search, and organize your books
-        </p>
-      </div>
-
       <BookTable
         books={books}
         onEdit={handleEdit}
         onDelete={handleDelete}
         onAdd={() => setIsAddOpen(true)}
-        onDeleteAll={() => setIsDeleteAllOpen(true)} // ✅ ADD THIS
+        onDeleteAll={() => setIsDeleteAllOpen(true)}
       />
 
       <AddBookModal
