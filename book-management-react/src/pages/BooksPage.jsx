@@ -79,9 +79,7 @@ function BooksPage() {
       if (!res.ok) throw new Error("Update failed");
 
       const saved = await res.json();
-      setBooks((prev) =>
-        prev.map((b) => (b.id === saved.id ? saved : b))
-      );
+      setBooks((prev) => prev.map((b) => (b.id === saved.id ? saved : b)));
 
       toast.success("Book updated ✨");
       setIsEditOpen(false);
@@ -186,6 +184,14 @@ function BooksPage() {
 
   return (
     <div className="p-6">
+      <div className="mb-6 text-center">
+        <h1 className="text-3xl font-semibold tracking-tight">
+          📚 Books Library
+        </h1>
+        <p className="text-sm text-gray-500 mt-1">
+          Manage, search, and organize your books
+        </p>
+      </div>
       <BookTable
         books={books}
         onEdit={handleEdit}
