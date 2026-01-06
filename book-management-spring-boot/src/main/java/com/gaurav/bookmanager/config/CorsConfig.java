@@ -17,12 +17,14 @@ public class CorsConfig {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("/api/**")
-                        .allowedOriginPatterns(allowedOrigins)
+                registry.addMapping("/**")   // 🔴 CHANGE: not just /api/**
+                        .allowedOrigins(allowedOrigins)
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-                        .allowedHeaders("*");
+                        .allowedHeaders("*")
+                        .allowCredentials(false);
             }
         };
     }
 }
+
 
